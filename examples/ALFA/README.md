@@ -17,6 +17,20 @@ The two cards are identical except for the gas table of the ARC. The cards and t
 fork below (`cards/` there); the module and its validation against the Geant4 full simulation are described in
 `examples/ALFA/README.md` of that fork.
 
+## Which ARC configuration the cards describe
+
+The validation and the design study use three labels; the cards in this repository are **B**:
+
+| label | aerogel | SiPM arrays | status |
+|---|---|---|---|
+| A | n = 1.019, 10 mm | 80 x 80 mm (as built) | validated (blind) |
+| **B** | **n = 1.030, 10 mm** | **80 x 80 mm (as built in k4geo ALFA_o1_v01)** | **validated; the two cards here** |
+| C | n = 1.030, 10 mm | 89.6 mm barrel / 108.8 mm endcap, the largest that fit the cells | validated (blind); the optimised design |
+
+Both cards state this in their first lines. To run the optimised design, change one line in either card:
+`set CellFile cards/arc/cells_ALFA_o1_v01_bigSiPM.txt` (the table is included). Everything else -- gas, pixels,
+mirrors, reconstruction -- is identical. A dedicated `delphes_card_ALFA_optimised.tcl` will follow.
+
 ## Requirements: Delphes with the ARCTracing module
 
 The cards use the `ARCTracing` Delphes module and its `Track` members. They are not in Delphes master: build Delphes
