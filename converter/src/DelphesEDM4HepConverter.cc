@@ -250,6 +250,10 @@ void DelphesEDM4HepConverter::processParticles(const TClonesArray* delphesCollec
   }
 }
 
+#ifdef K4SIMDELPHES_HAS_ARC
+constexpr int ARC_PID_TYPE = 1023; // user-defined ParticleID type of the ARC hypothesis
+#endif
+
 void DelphesEDM4HepConverter::processTracks(const TClonesArray* delphesCollection, std::string const& branch) {
   auto* particleCollection = getCollection<edm4hep::ReconstructedParticleCollection>(m_recoCollName);
   auto* trackCollection = createCollection<edm4hep::TrackCollection>(branch);
@@ -312,6 +316,20 @@ void DelphesEDM4HepConverter::processTracks(const TClonesArray* delphesCollectio
     cand.addToTracks(track);
 
     // id.addToParameters(delphesCand->IsolationVar);
+#ifdef K4SIMDELPHES_HAS_ARC
+    // ARC particle identification from the Delphes ARCTracing module (ALFA): PDG of the best pi/K/p hypothesis (0 = no ring),
+    // likelihood = P(K), parameters = [P(pi), P(K), P(p), reconstructed Cherenkov angle gas, aerogel [rad] (-1 = no ring),
+    // per-track angle resolution gas, aerogel [rad], photons in the ring gas, aerogel, mass of the best hypothesis [GeV]]
+    id.setType(ARC_PID_TYPE);
+    id.setAlgorithmType(ARC_PID_TYPE);
+    id.setPDG(delphesCand->ARCpid);
+    id.setLikelihood(delphesCand->ARCprobK);
+    for (const float v : {delphesCand->ARCprobPi, delphesCand->ARCprobK, delphesCand->ARCprobP, delphesCand->CherenkovRecoAngleGas,
+                          delphesCand->CherenkovRecoAngleAerogel, delphesCand->SigmaThetaCGas, delphesCand->SigmaThetaCAerogel,
+                          delphesCand->NpeGas, delphesCand->NpeAerogel, delphesCand->ARCmass}) {
+      id.addToParameters(v);
+    }
+#endif
     id.setParticle(cand);
 
     UInt_t genId = delphesCand->Particle.GetUniqueID();

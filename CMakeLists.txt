@@ -19,10 +19,12 @@ SET( ${PROJECT_NAME}_VERSION_PATCH 0 )
 SET( ${PROJECT_NAME}_VERSION
   "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH}" )
 
+# GNUInstallDirs first: Key4hepConfig sets the install RPATH from CMAKE_INSTALL_LIBDIR (lib64 on EL9)
+include(GNUInstallDirs)
 include(cmake/Key4hepConfig.cmake)
 
 #-- Use GNU-style hierarchy for installing build products ----------------------
-include(GNUInstallDirs)
+
 
 #--- add version files ---------------------------------------------------------
 configure_file(${PROJECT_SOURCE_DIR}/k4SimDelphesVersion.h
@@ -56,6 +58,12 @@ find_package(ROOT REQUIRED)
 # Detect whether Delphes uses ReadEvent (new) or ReadBlock (old)
 # ReadEvent was introduced in Delphes 3.5.2pre01.
 # Delphes doesn't export a version so checking for the existence of ReadEvent is the only way to detect this.
+# ALFA: a Delphes with the ARCTracing module has the ARC members on Track; write them to the EFlowTrack_PID collection
+file(STRINGS "${DELPHES_INCLUDE_DIR}/classes/DelphesClasses.h" DELPHES_ARC_LINE REGEX "ARCprobK")
+if(DELPHES_ARC_LINE)
+  message(STATUS "Delphes has ARCTracing: EFlowTrack_PID filled with the ARC hypotheses")
+  add_compile_definitions(K4SIMDELPHES_HAS_ARC)
+endif()
 file(STRINGS "${DELPHES_INCLUDE_DIR}/classes/DelphesHepMC2Reader.h"
      _delphes_hepmcreader_content REGEX "ReadEvent")
 if(_delphes_hepmcreader_content)
